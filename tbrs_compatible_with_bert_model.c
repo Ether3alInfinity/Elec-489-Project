@@ -87,7 +87,7 @@ float var_rop;
 float var_ta;
 
 // IMPLEMENTATION VARIABLES
-int VERBOSE=1;
+int VERBOSE=0;
 int PRESET=1;
 int QUIET=0;
 float logTauE;
@@ -552,6 +552,21 @@ float encode(int positionVectors[][nbPositionUnits+1],float itemVectorsInWM[][nb
   return(encodingDuration);
 }
 
+/*******************************/
+/* COMPARE STIMULUS AND RECALL */
+/*******************************/
+float compareStimAndRecalled(char recalled[],int lastPosition,float resSerialPositionData[]) {
+  // Compare the recalled sequence with the stimulus ("ABC...") and return the proportion correct
+  int i;
+  int sommeOrdre=0;
+  for (i=0;i<=lastPosition-1;i++)
+    if (recalled[i] == 'A'+i) {
+      sommeOrdre++;
+      resSerialPositionData[i+1]++;
+    }
+  return((float)sommeOrdre/lastPosition);
+}
+
 /***********/
 /* REFRESH */
 /***********/
@@ -712,20 +727,6 @@ void recall(int positionVectors[][nbPositionUnits+1],float itemVectorsInWM[][nbI
   recalled[lastPosition]='\0';
 }
 
-/*******************************/
-/* COMPARE STIMULUS AND RECALL */
-/*******************************/
-float compareStimAndRecalled(char recalled[],int lastPosition,float resSerialPositionData[]) {
-  // Compare the recalled sequence with the stimulus ("ABC...") and return the proportion correct
-  int i;
-  int sommeOrdre=0;
-  for (i=0;i<=lastPosition-1;i++)
-    if (recalled[i] == 'A'+i) {
-      sommeOrdre++;
-      resSerialPositionData[i+1]++;
-    }
-  return((float)sommeOrdre/lastPosition);
-}
 	
 
 /*************************************/
@@ -817,11 +818,21 @@ void generateItemRepresentations(float itemVectors[][nbItemUnits+1], float d1, f
 /********/
 int main(int argc,char* argv[]) {
   printf("running");
+
+  float span;
+   span = 0;
+   int nbmemo_in;
+   
+   int k;
+   for(k=1;k<=nbmemo;k++){
+    nbmemo_in = k;
+    printf("%i",nbmemo);
+
   nbPositionUnits=nbUnitBlocks*sizeOfPositionBlocks;  // number of units in the position layer
 
   float itemPositionMatrix[maxItem+1][nbPositionUnits+1];
   float itemStrength[maxItem+1];   // WM representations of item strengths
-  int nbSimulations=1;
+  int nbSimulations=500;
   int positionVectors[maxPosition+1][nbPositionUnits+1];
   float itemVectorsInWM[maxItem+1][nbItemUnits+1];    // WM representations of items
   float itemVectorsInLTM[maxItem+1][nbItemUnits+1];   // LTM representations of items
@@ -1072,7 +1083,7 @@ int main(int argc,char* argv[]) {
 	break;
       }
       else 
-	error("Unknow symbol in stimulus","");
+	error("Unknown symbol in stimulus","");
     }
     
     cptReplic++;
@@ -1081,15 +1092,21 @@ int main(int argc,char* argv[]) {
   // DISPLAY RESULTS
   // Headings
   printf("NBSimulations NbMemo NbOp ProportionCorrect P R s tauE L theta sigma D Tr tauOp Ta freeTime ftIncludesOp refreshLastStopped attentionalFocusSize ");
-  for(i=1;i<=nbmemo;i++)
-    printf("Pos%d ",i);
-  printf("\n");
 
   // Data
-  printf("%d %d %d %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %d %d %d ",nbSimulations,nbmemo,nbop,resPropCorrect/nbSimulations,param_P,param_R,param_s,param_tauE,param_L,param_theta,param_sigma,param_D,param_Tr,param_tauOp,param_Ta,param_freeTime,param_freeTimeIncludesOpDuration,param_refreshLastStopped,param_attentionalFocusSize);
-
-  for(i=1;i<=nbmemo;i++)
-    printf("%1.4f ",resSerialPositionData[i]/nbSimulations);
+  printf("\n"); 
+  printf("%d %d %d %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %1.3f %d %d %d ",nbSimulations,nbmemo_in,nbop,resPropCorrect/nbSimulations,param_P,param_R,param_s,param_tauE,param_L,param_theta,param_sigma,param_D,param_Tr,param_tauOp,param_Ta,param_freeTime,param_freeTimeIncludesOpDuration,param_refreshLastStopped,param_attentionalFocusSize);
   printf("\n");
 
+  printf("Span \n"); 
+  for(i=1;i<=nbmemo_in;i++)
+    printf("Pos%d ",i);
+  printf("\n"); 
+  
+  for(i=1;i<=nbmemo_in;i++)
+    printf("%1.4f ",resSerialPositionData[i]/nbSimulations);
+  printf("\n");
+  span = span + resPropCorrect/nbSimulations;
+  printf("%1.4f",span);
+   }
 }
